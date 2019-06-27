@@ -1,4 +1,7 @@
-<?php include('includes/header.php'); ?>
+<?php 
+include('includes/header.php'); 
+require_once('includes/connect.php');
+?>
 <div class="row">
     <div class="col-md-4 col-md-offset-4">
         <div class="login-panel panel panel-default">
