@@ -4,8 +4,26 @@ require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
     print_r($_POST);
     // PHP Form Validations
-    if(empty($_POST['uname'])){ $errors[] = 'User Name field is Required';}
-    if(empty($_POST['email'])){ $errors[] = 'E-mail field is Required';}
+    if(empty($_POST['uname'])){ $errors[] = 'User Name field is Required';}else{
+        // check username is unique with db query
+        $sql = "SELECT * FROM users WHERE username=?";
+        $result = $db->prepare($sql);
+        $result->execute(array($_POST['uname']));
+        $count = $result->rowCount();
+        if($count == 1){
+            $errors[] = "User Name already exists in database";
+        }
+    }
+    if(empty($_POST['email'])){ $errors[] = 'E-mail field is Required';}else{
+        // check email is unique with db query
+        $sql = "SELECT * FROM users WHERE email=?";
+        $result = $db->prepare($sql);
+        $result->execute(array($_POST['email']));
+        $count = $result->rowCount();
+        if($count == 1){
+            $errors[] = "E-mail already exists in database";
+        }
+    }
     if(empty($_POST['mobile'])){ $errors[] = 'Mobile field is Required';}
     if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}else{
         if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}else{
