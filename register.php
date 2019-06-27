@@ -8,7 +8,16 @@ if(isset($_POST) & !empty($_POST)){
     if(empty($_POST['email'])){ $errors[] = 'E-mail field is Required';}
     if(empty($_POST['mobile'])){ $errors[] = 'Mobile field is Required';}
     if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}else{
-        if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}
+        if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}else{
+            // compare both password, if they match. generate the password hash
+            if($_POST['password'] == $_POST['passwordr']){
+                // create password hash
+                $pass_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            }else{
+                // error message
+                $errors[] = 'Both Passwords Should Match';
+            }
+        }
     }
     // password will be password hash
     // Insert values into users table
@@ -17,7 +26,7 @@ if(isset($_POST) & !empty($_POST)){
         $result = $db->prepare($sql);
         $values = array(':username'     => $_POST['uname'],
                         ':email'        => $_POST['email'],
-                        ':password'     => $_POST['password'],
+                        ':password'     => $pass_hash,
                         );
         $res = $result->execute($values);
         if($res){
