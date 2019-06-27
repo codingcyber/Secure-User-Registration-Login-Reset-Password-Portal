@@ -82,6 +82,14 @@ if(isset($_POST) & !empty($_POST)){
             $uires = $uiresult->execute($values);
             if($uires){
                 $messages[] = "Added Users Meta Information";
+                // Insert Activity into DB Table - user_activity
+                $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                $actresult = $db->prepare($actsql);
+                $values = array(':uid'          => $userid,
+                                ':activity'     => 'User Registered'
+                                );
+                $actresult->execute($values);
+                $messages[] = 'Adding User Registration Log Entry';
             }
         }
     }
