@@ -1,6 +1,9 @@
 <?php 
 include('includes/header.php'); 
 require_once('includes/connect.php');
+if(isset($_POST) & !empty($_POST)){
+    print_r($_POST);
+}
 ?>
 <div class="row">
     <div class="col-md-4 col-md-offset-4">
@@ -12,7 +15,7 @@ require_once('includes/connect.php');
                 <form role="form" method="post">
                     <fieldset>
                         <div class="form-group">
-                            <input class="form-control" placeholder="User Name" name="username" type="text" autofocus>
+                            <input class="form-control" placeholder="User Name" name="uname" type="text" autofocus>
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="E-mail" name="email" type="email" autofocus>
@@ -27,7 +30,7 @@ require_once('includes/connect.php');
                             <input class="form-control" placeholder="Repeat Password" name="passwordr" type="password" value="">
                         </div>
                         <!-- Change this to a button or input when using this as a form -->
-                        <a href="index.html" class="btn btn-lg btn-success btn-block">Register</a>
+                        <input type="submit" class="btn btn-lg btn-success btn-block" value="Register" />
                     </fieldset>
                 </form>
             </div>
