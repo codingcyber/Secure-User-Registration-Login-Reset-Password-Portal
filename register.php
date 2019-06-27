@@ -1,8 +1,8 @@
 <?php 
+session_start();
 include('includes/header.php'); 
 require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
-    print_r($_POST);
     // PHP Form Validations
     if(empty($_POST['uname'])){ $errors[] = 'User Name field is Required';}else{
         // check username is unique with db query
@@ -37,6 +37,29 @@ if(isset($_POST) & !empty($_POST)){
             }
         }
     }
+
+    // CSRF Token Validation
+    if(isset($_POST['csrf_token'])){
+        if($_POST['csrf_token'] === $_SESSION['csrf_token']){
+        }else{
+            $errors[] = "Problem with CSRF Token Verification";
+        }
+    }else{
+        $errors[] = "Problem with CSRF Token Validation";
+    }
+
+    // CSRF Token Time Validation
+    $max_time = 60*60*24;
+    if(isset($_SESSION['csrf_token_time'])){
+        $token_time = $_SESSION['csrf_token_time'];
+        if(($token_time + $max_time) >= time()){
+        }else{
+            $errors[] = "CSRF Token Expired";
+            unset($_SESSION['csrf_token']);
+            unset($_SESSION['csrf_token_time']);
+        }
+    }
+
     // password will be password hash
     // Insert values into users table
     if(empty($errors)){
@@ -63,6 +86,10 @@ if(isset($_POST) & !empty($_POST)){
         }
     }
 }
+// Create CSRF token
+$token = md5(uniqid(rand(), TRUE));
+$_SESSION['csrf_token'] = $token;
+$_SESSION['csrf_token_time'] = time();
 ?>
 <div class="row">
     <div class="col-md-4 col-md-offset-4">
@@ -90,6 +117,7 @@ if(isset($_POST) & !empty($_POST)){
                     }
                 ?>
                 <form role="form" method="post">
+                    <input type="hidden" name="csrf_token" value="<?php echo $token; ?>">
                     <fieldset>
                         <div class="form-group">
                             <input class="form-control" placeholder="User Name" name="uname" type="text" autofocus value="<?php if(isset($_POST['uname'])){ echo $_POST['uname']; } ?>">
