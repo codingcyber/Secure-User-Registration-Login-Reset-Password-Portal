@@ -65,19 +65,19 @@ if(isset($_POST) & !empty($_POST)){
                 <form role="form" method="post">
                     <fieldset>
                         <div class="form-group">
-                            <input class="form-control" placeholder="User Name" name="uname" type="text" autofocus>
+                            <input class="form-control" placeholder="User Name" name="uname" type="text" autofocus value="<?php if(isset($_POST['uname'])){ echo $_POST['uname']; } ?>">
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="E-mail" name="email" type="email" autofocus>
+                            <input class="form-control" placeholder="E-mail" name="email" type="email" value="<?php if(isset($_POST['email'])){ echo $_POST['email']; } ?>">
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Mobile" name="mobile" type="text" autofocus>
+                            <input class="form-control" placeholder="Mobile" name="mobile" type="text" value="<?php if(isset($_POST['mobile'])){ echo $_POST['mobile']; } ?>">
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                            <input class="form-control" placeholder="Password" name="password" type="password" >
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Repeat Password" name="passwordr" type="password" value="">
+                            <input class="form-control" placeholder="Repeat Password" name="passwordr" type="password">
                         </div>
                         <!-- Change this to a button or input when using this as a form -->
                         <input type="submit" class="btn btn-lg btn-success btn-block" value="Register" />
