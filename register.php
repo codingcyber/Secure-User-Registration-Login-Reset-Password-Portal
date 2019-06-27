@@ -3,6 +3,29 @@ include('includes/header.php');
 require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
     print_r($_POST);
+    // password will be password hash
+    // Insert values into users table
+    $sql = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
+    $result = $db->prepare($sql);
+    $values = array(':username'     => $_POST['uname'],
+                    ':email'        => $_POST['email'],
+                    ':password'     => $_POST['password'],
+                    );
+    $res = $result->execute($values);
+    if($res){
+        $messages[] = 'User Registered';
+        // get the id from the last insert query and insert a new record into  user_info table mobile number column
+        $userid = $db->lastInsertID();
+        $uisql = "INSERT INTO user_info (uid, mobile) VALUES (:uid, :mobile)";
+        $uiresult = $db->prepare($uisql);
+        $values = array(':uid'      => $userid,
+                        ':mobile'   => $_POST['mobile']
+                        );
+        $uires = $uiresult->execute($values);
+        if($uires){
+            $messages[] = "Added Users Meta Information";
+        }
+    }  
 }
 ?>
 <div class="row">
@@ -12,6 +35,7 @@ if(isset($_POST) & !empty($_POST)){
                 <h3 class="panel-title">Please Register</h3>
             </div>
             <div class="panel-body">
+                <?php print_r($messages); ?>
                 <form role="form" method="post">
                     <fieldset>
                         <div class="form-group">
