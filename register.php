@@ -3,29 +3,38 @@ include('includes/header.php');
 require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
     print_r($_POST);
+    // PHP Form Validations
+    if(empty($_POST['uname'])){ $errors[] = 'User Name field is Required';}
+    if(empty($_POST['email'])){ $errors[] = 'E-mail field is Required';}
+    if(empty($_POST['mobile'])){ $errors[] = 'Mobile field is Required';}
+    if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}else{
+        if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}
+    }
     // password will be password hash
     // Insert values into users table
-    $sql = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
-    $result = $db->prepare($sql);
-    $values = array(':username'     => $_POST['uname'],
-                    ':email'        => $_POST['email'],
-                    ':password'     => $_POST['password'],
-                    );
-    $res = $result->execute($values);
-    if($res){
-        $messages[] = 'User Registered';
-        // get the id from the last insert query and insert a new record into  user_info table mobile number column
-        $userid = $db->lastInsertID();
-        $uisql = "INSERT INTO user_info (uid, mobile) VALUES (:uid, :mobile)";
-        $uiresult = $db->prepare($uisql);
-        $values = array(':uid'      => $userid,
-                        ':mobile'   => $_POST['mobile']
+    if(empty($errors)){
+        $sql = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
+        $result = $db->prepare($sql);
+        $values = array(':username'     => $_POST['uname'],
+                        ':email'        => $_POST['email'],
+                        ':password'     => $_POST['password'],
                         );
-        $uires = $uiresult->execute($values);
-        if($uires){
-            $messages[] = "Added Users Meta Information";
+        $res = $result->execute($values);
+        if($res){
+            $messages[] = 'User Registered';
+            // get the id from the last insert query and insert a new record into  user_info table mobile number column
+            $userid = $db->lastInsertID();
+            $uisql = "INSERT INTO user_info (uid, mobile) VALUES (:uid, :mobile)";
+            $uiresult = $db->prepare($uisql);
+            $values = array(':uid'      => $userid,
+                            ':mobile'   => $_POST['mobile']
+                            );
+            $uires = $uiresult->execute($values);
+            if($uires){
+                $messages[] = "Added Users Meta Information";
+            }
         }
-    }  
+    }
 }
 ?>
 <div class="row">
@@ -35,7 +44,24 @@ if(isset($_POST) & !empty($_POST)){
                 <h3 class="panel-title">Please Register</h3>
             </div>
             <div class="panel-body">
-                <?php print_r($messages); ?>
+                <?php
+                    if(!empty($messages)){
+                        echo "<div class='alert alert-success'>";
+                        foreach ($messages as $message) {
+                            echo "<span class='glyphicon glyphicon-ok'></span>&nbsp;". $message ."<br>";
+                        }
+                        echo "</div>";
+                    }
+                ?>
+                <?php
+                    if(!empty($errors)){
+                        echo "<div class='alert alert-danger'>";
+                        foreach ($errors as $error) {
+                            echo "<span class='glyphicon glyphicon-remove'></span>&nbsp;". $error ."<br>";
+                        }
+                        echo "</div>";
+                    }
+                ?>
                 <form role="form" method="post">
                     <fieldset>
                         <div class="form-group">
