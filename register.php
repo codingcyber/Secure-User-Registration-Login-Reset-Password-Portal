@@ -66,6 +66,9 @@ if(isset($_POST) & !empty($_POST)){
             unset($_SESSION['csrf_token']);
             unset($_SESSION['csrf_token_time']);
         }
+    }else{
+        unset($_SESSION['csrf_token']);
+        unset($_SESSION['csrf_token_time']);
     }
 
     // password will be password hash
