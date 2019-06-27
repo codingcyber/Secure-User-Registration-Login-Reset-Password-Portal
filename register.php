@@ -4,12 +4,18 @@ use PHPMailer\PHPMailer\Exception;
 session_start();
 include('includes/header.php'); 
 require_once('includes/connect.php');
+include('recaptchalib.php'); 
 require_once('includes/smtp.php');
 
 require 'PHPMailer-master/src/Exception.php';
 require 'PHPMailer-master/src/PHPMailer.php';
 require 'PHPMailer-master/src/SMTP.php';
+
 $url = "http://localhost/Secure-User-Registration-Login-Reset-Password-Portal/";
+$secret = "6LfVZn0UAAAAAFOgvkH4AqGD8NwNy0KvxMFBkUL_";
+$response = null;
+$reCaptcha = new ReCaptcha($secret);
+
 if(isset($_POST) & !empty($_POST)){
     // PHP Form Validations
     if(empty($_POST['uname'])){ $errors[] = 'User Name field is Required';}else{
@@ -74,73 +80,83 @@ if(isset($_POST) & !empty($_POST)){
     // password will be password hash
     // Insert values into users table
     if(empty($errors)){
-        $sql = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
-        $result = $db->prepare($sql);
-        $values = array(':username'     => $_POST['uname'],
-                        ':email'        => $_POST['email'],
-                        ':password'     => $pass_hash,
-                        );
-        $res = $result->execute($values);
-        if($res){
-            $messages[] = 'User Registered';
-            // get the id from the last insert query and insert a new record into  user_info table mobile number column
-            $userid = $db->lastInsertID();
-            $uisql = "INSERT INTO user_info (uid, mobile) VALUES (:uid, :mobile)";
-            $uiresult = $db->prepare($uisql);
-            $values = array(':uid'      => $userid,
-                            ':mobile'   => $_POST['mobile']
+        if($_POST['g-recaptcha-response']){
+            $response = $reCaptcha->verifyResponse(
+                        $_SERVER['REMOTE_ADDR'],
+                        $_POST['g-recaptcha-response']
+                );
+        }
+        if($response != null && $response->success){
+            $sql = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
+            $result = $db->prepare($sql);
+            $values = array(':username'     => $_POST['uname'],
+                            ':email'        => $_POST['email'],
+                            ':password'     => $pass_hash,
                             );
-            $uires = $uiresult->execute($values);
-            if($uires){
-                $messages[] = "Added Users Meta Information";
-                // Insert Activity into DB Table - user_activity
-                $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
-                $actresult = $db->prepare($actsql);
-                $values = array(':uid'          => $userid,
-                                ':activity'     => 'User Registered'
+            $res = $result->execute($values);
+            if($res){
+                $messages[] = 'User Registered';
+                // get the id from the last insert query and insert a new record into  user_info table mobile number column
+                $userid = $db->lastInsertID();
+                $uisql = "INSERT INTO user_info (uid, mobile) VALUES (:uid, :mobile)";
+                $uiresult = $db->prepare($uisql);
+                $values = array(':uid'      => $userid,
+                                ':mobile'   => $_POST['mobile']
                                 );
-                $actresult->execute($values);
-                $messages[] = 'Adding User Registration Log Entry';
+                $uires = $uiresult->execute($values);
+                if($uires){
+                    $messages[] = "Added Users Meta Information";
+                    // Insert Activity into DB Table - user_activity
+                    $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                    $actresult = $db->prepare($actsql);
+                    $values = array(':uid'          => $userid,
+                                    ':activity'     => 'User Registered'
+                                    );
+                    $actresult->execute($values);
+                    $messages[] = 'Adding User Registration Log Entry';
 
-                // Generating and Inserting Activation Token in DB Table - user_active
-                $active_token = md5($_POST['uname']);
-                $activesql = "INSERT INTO user_active (uid, active_token) VALUES (:uid, :active_token)";
-                $activeresult = $db->prepare($activesql);
-                $values = array(':uid'              => $userid,
-                                ':active_token'     => $active_token
-                                );
-                $activeresult->execute($values);
+                    // Generating and Inserting Activation Token in DB Table - user_active
+                    $active_token = md5($_POST['uname']);
+                    $activesql = "INSERT INTO user_active (uid, active_token) VALUES (:uid, :active_token)";
+                    $activeresult = $db->prepare($activesql);
+                    $values = array(':uid'              => $userid,
+                                    ':active_token'     => $active_token
+                                    );
+                    $activeresult->execute($values);
 
-                // send email to registered user
-                $mail = new PHPMailer(true);
+                    // send email to registered user
+                    $mail = new PHPMailer(true);
 
-                try {
-                    //Server settings
-                    $mail->isSMTP();                                            // Set mailer to use SMTP
-                    $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
-                    $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
-                    $mail->Username   = $smtpuser;                     // SMTP username
-                    $mail->Password   = $smtppass;                               // SMTP password
-                    $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
-                    $mail->Port       = 587;                                    // TCP port to connect to
+                    try {
+                        //Server settings
+                        $mail->isSMTP();                                            // Set mailer to use SMTP
+                        $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
+                        $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+                        $mail->Username   = $smtpuser;                     // SMTP username
+                        $mail->Password   = $smtppass;                               // SMTP password
+                        $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
+                        $mail->Port       = 587;                                    // TCP port to connect to
 
-                    //Recipients
-                    $mail->setFrom('test@example.com', 'Vivek Vengala');
-                    // update recipient email with dynamic email
-                    $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+                        //Recipients
+                        $mail->setFrom('test@example.com', 'Vivek Vengala');
+                        // update recipient email with dynamic email
+                        $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
 
-                    // Content
-                    $mail->isHTML(true);                                  // Set email format to HTML
-                    $mail->Subject = 'Verify Your Email';
-                    $mail->Body    = "{$url}activate.php?key={$active_token}&id={$userid}</b>";
-                    $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+                        // Content
+                        $mail->isHTML(true);                                  // Set email format to HTML
+                        $mail->Subject = 'Verify Your Email';
+                        $mail->Body    = "{$url}activate.php?key={$active_token}&id={$userid}</b>";
+                        $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
-                    $mail->send();
-                    $messages[] = 'Activation Email Sent, Follow the Instructions';
-                } catch (Exception $e) {
-                    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                        $mail->send();
+                        $messages[] = 'Activation Email Sent, Follow the Instructions';
+                    } catch (Exception $e) {
+                        echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                    }
                 }
             }
+        }else{
+            $errors[] = "Problem with Captcha";
         }
     }
 }
@@ -193,6 +209,7 @@ $_SESSION['csrf_token_time'] = time();
                             <input class="form-control" placeholder="Repeat Password" name="passwordr" type="password">
                         </div>
                         <!-- Change this to a button or input when using this as a form -->
+                         <div class="g-recaptcha" data-sitekey="6LfVZn0UAAAAABGnxSUrSALkOTyQgZqcJE8FctZ3"></div>
                         <input type="submit" class="btn btn-lg btn-success btn-block" value="Register" />
                     </fieldset>
                 </form>
