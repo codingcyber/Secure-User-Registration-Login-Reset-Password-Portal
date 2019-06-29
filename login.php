@@ -3,20 +3,29 @@ include('includes/header.php');
 require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
     print_r($_POST);
+    if(empty($_POST['email'])){ $errors[] = 'User Name / E-mail field is Required';}
+    if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}
     // select sql query to check the email id in database
-    $sql = "SELECT * FROM users WHERE email=?";
+    // updating the sql query to work with email and username with filter_var
+    $sql = "SELECT * FROM users WHERE ";
+    if(filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
+        $sql .= "email=?";
+    }else{
+        $sql .= "username=?";
+    }
     $result = $db->prepare($sql);
     $result->execute(array($_POST['email']));
     $count = $result->rowCount();
     $res = $result->fetch(PDO::FETCH_ASSOC);
     if($count == 1){
-        $messages[] = "E-Mail already exists in database";
         // then comparing the password with password hash
         if(password_verify($_POST['password'], $res['password'])){
             $messages[] = "Create Session and Redirect user to Members Area";
         }else{
-            $errors[] = "E-Mail / Password Combination not Working";
+            $errors[] = "User Name / E-Mail & Password Combination not Working";
         }
+    }else{
+        $errors[] = "User Name / E-Mail Not Valid";
     }
 }
 ?>
@@ -48,10 +57,10 @@ if(isset($_POST) & !empty($_POST)){
                 <form role="form" method="post">
                     <fieldset>
                         <div class="form-group">
-                            <input class="form-control" placeholder="E-mail" name="email" type="email" autofocus>
+                            <input class="form-control" placeholder="E-mail" name="email" type="text" autofocus  value="<?php if(isset($_POST['email'])){ echo $_POST['email']; } ?>">
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="Password" name="password" type="password" value="">
+                            <input class="form-control" placeholder="Password" name="password" type="password">
                         </div>
                         <div class="checkbox">
                             <label>
