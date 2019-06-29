@@ -1,33 +1,66 @@
 <?php 
+session_start();
 include('includes/header.php'); 
 require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
     print_r($_POST);
     if(empty($_POST['email'])){ $errors[] = 'User Name / E-mail field is Required';}
     if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}
-    // select sql query to check the email id in database
-    // updating the sql query to work with email and username with filter_var
-    $sql = "SELECT * FROM users WHERE ";
-    if(filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
-        $sql .= "email=?";
-    }else{
-        $sql .= "username=?";
-    }
-    $result = $db->prepare($sql);
-    $result->execute(array($_POST['email']));
-    $count = $result->rowCount();
-    $res = $result->fetch(PDO::FETCH_ASSOC);
-    if($count == 1){
-        // then comparing the password with password hash
-        if(password_verify($_POST['password'], $res['password'])){
-            $messages[] = "Create Session and Redirect user to Members Area";
+
+    // CSRF Token Validation
+    if(isset($_POST['csrf_token'])){
+        if($_POST['csrf_token'] === $_SESSION['csrf_token']){
         }else{
-            $errors[] = "User Name / E-Mail & Password Combination not Working";
+            $errors[] = "Problem with CSRF Token Verification";
         }
     }else{
-        $errors[] = "User Name / E-Mail Not Valid";
+        $errors[] = "Problem with CSRF Token Validation";
+    }
+
+    // CSRF Token Time Validation
+    $max_time = 60*60*24;
+    if(isset($_SESSION['csrf_token_time'])){
+        $token_time = $_SESSION['csrf_token_time'];
+        if(($token_time + $max_time) >= time()){
+        }else{
+            $errors[] = "CSRF Token Expired";
+            unset($_SESSION['csrf_token']);
+            unset($_SESSION['csrf_token_time']);
+        }
+    }else{
+        unset($_SESSION['csrf_token']);
+        unset($_SESSION['csrf_token_time']);
+    }
+
+    if(empty($errors)){
+        // select sql query to check the email id in database
+        // updating the sql query to work with email and username with filter_var
+        $sql = "SELECT * FROM users WHERE ";
+        if(filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
+            $sql .= "email=?";
+        }else{
+            $sql .= "username=?";
+        }
+        $result = $db->prepare($sql);
+        $result->execute(array($_POST['email']));
+        $count = $result->rowCount();
+        $res = $result->fetch(PDO::FETCH_ASSOC);
+        if($count == 1){
+            // then comparing the password with password hash
+            if(password_verify($_POST['password'], $res['password'])){
+                $messages[] = "Create Session and Redirect user to Members Area";
+            }else{
+                $errors[] = "User Name / E-Mail & Password Combination not Working";
+            }
+        }else{
+            $errors[] = "User Name / E-Mail Not Valid";
+        }
     }
 }
+// Create CSRF token
+$token = md5(uniqid(rand(), TRUE));
+$_SESSION['csrf_token'] = $token;
+$_SESSION['csrf_token_time'] = time();
 ?>
 <div class="row">
     <div class="col-md-4 col-md-offset-4">
@@ -55,6 +88,7 @@ if(isset($_POST) & !empty($_POST)){
                     }
                 ?>
                 <form role="form" method="post">
+                    <input type="hidden" name="csrf_token" value="<?php echo $token; ?>">
                     <fieldset>
                         <div class="form-group">
                             <input class="form-control" placeholder="E-mail" name="email" type="text" autofocus  value="<?php if(isset($_POST['email'])){ echo $_POST['email']; } ?>">
