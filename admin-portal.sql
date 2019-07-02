@@ -2,10 +2,10 @@
 -- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jun 27, 2019 at 06:38 PM
--- Server version: 10.3.16-MariaDB
--- PHP Version: 7.3.6
+-- Host: localhost
+-- Generation Time: Jul 02, 2019 at 03:09 PM
+-- Server version: 10.3.15-MariaDB
+-- PHP Version: 7.1.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -21,6 +21,19 @@ SET time_zone = "+00:00";
 --
 -- Database: `admin-portal`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_log`
+--
+
+CREATE TABLE `login_log` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `loggedin` datetime NOT NULL,
+  `loggedout` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -94,6 +107,12 @@ CREATE TABLE `user_info` (
 --
 
 --
+-- Indexes for table `login_log`
+--
+ALTER TABLE `login_log`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -121,6 +140,12 @@ ALTER TABLE `user_info`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `login_log`
+--
+ALTER TABLE `login_log`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`

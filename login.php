@@ -49,6 +49,19 @@ if(isset($_POST) & !empty($_POST)){
             // then comparing the password with password hash
             if(password_verify($_POST['password'], $res['password'])){
                 $messages[] = "Create Session and Redirect user to Members Area";
+                // Insert Activity into DB Table - user_activity
+                $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                $actresult = $db->prepare($actsql);
+                $values = array(':uid'          => $res['id'],
+                                ':activity'     => 'User LoggedIn'
+                                );
+                $actresult->execute($values);
+
+                // Insert Login timestamps into DB Table - login_log
+                $loginsql = "INSERT INTO login_log (uid, loggedin) VALUES (:uid, NOW())";
+                $loginresult = $db->prepare($loginsql);
+                $values = array(':uid'          => $res['id'] );
+                $loginresult->execute($values);
             }else{
                 $errors[] = "User Name / E-Mail & Password Combination not Working";
             }
