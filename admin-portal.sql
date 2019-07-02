@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 02, 2019 at 03:09 PM
+-- Generation Time: Jul 02, 2019 at 04:29 PM
 -- Server version: 10.3.15-MariaDB
 -- PHP Version: 7.1.30
 
@@ -21,6 +21,18 @@ SET time_zone = "+00:00";
 --
 -- Database: `admin-portal`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_fail`
+--
+
+CREATE TABLE `login_fail` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `loginfailed` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -107,6 +119,12 @@ CREATE TABLE `user_info` (
 --
 
 --
+-- Indexes for table `login_fail`
+--
+ALTER TABLE `login_fail`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `login_log`
 --
 ALTER TABLE `login_log`
@@ -140,6 +158,12 @@ ALTER TABLE `user_info`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `login_fail`
+--
+ALTER TABLE `login_fail`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `login_log`

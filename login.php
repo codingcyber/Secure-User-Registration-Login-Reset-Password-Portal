@@ -3,7 +3,6 @@ session_start();
 include('includes/header.php'); 
 require_once('includes/connect.php');
 if(isset($_POST) & !empty($_POST)){
-    print_r($_POST);
     if(empty($_POST['email'])){ $errors[] = 'User Name / E-mail field is Required';}
     if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}
 
@@ -64,9 +63,22 @@ if(isset($_POST) & !empty($_POST)){
                 $loginresult->execute($values);
             }else{
                 $errors[] = "User Name / E-Mail & Password Combination not Working";
+                $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                $actresult = $db->prepare($actsql);
+                $values = array(':uid'          => $res['id'],
+                                ':activity'     => 'User LogIn Failed'
+                                );
+                $actresult->execute($values);
+
+                // Insert Failed Login timestamp in login_fail table
+                $loginfailsql = "INSERT INTO login_fail (uid) VALUES (:uid)";
+                $loginfailresult = $db->prepare($loginfailsql);
+                $values = array(':uid'          => $res['id'] );
+                $loginfailresult->execute($values);
             }
         }else{
             $errors[] = "User Name / E-Mail Not Valid";
+            // Insert Failed Login Attempt to user_activity table
         }
     }
 }
