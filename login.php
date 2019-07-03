@@ -81,6 +81,7 @@ if(isset($_POST) & !empty($_POST)){
 
                     header('location:index.php');
                 }else{
+                    // Insert Failed Login Attempt to user_activity table
                     $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
                     $actresult = $db->prepare($actsql);
                     $values = array(':uid'          => $res['id'],
@@ -124,6 +125,10 @@ $_SESSION['csrf_token_time'] = time();
             </div>
             <div class="panel-body">
                 <?php
+                    echo "Session ID : " . session_id();
+                    echo "<pre>";
+                    print_r($_SESSION);
+                    echo "</pre>";
                     if(!empty($messages)){
                         echo "<div class='alert alert-success'>";
                         foreach ($messages as $message) {
