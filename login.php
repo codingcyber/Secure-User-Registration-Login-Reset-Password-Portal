@@ -65,6 +65,21 @@ if(isset($_POST) & !empty($_POST)){
                                     );
                     $actresult->execute($values);
 
+                    // update logout time in login_log table, if previous records logout value is blank insert the logout time
+                    // select query to get the record with blank logout time for the current logged in user
+                    $logsql = "SELECT * FROM login_log WHERE uid=? AND loggedout='0000-00-00 00:00:00' ORDER BY id DESC LIMIT 1";
+                    $logresult = $db->prepare($logsql);
+                    $logresult->execute(array($res['id']));
+                    $logcount = $logresult->rowCount();
+                    $logres = $logresult->fetch(PDO::FETCH_ASSOC);
+                    if($logcount == 1){
+                        // update the loggout time
+                        $logoutsql = "UPDATE login_log SET loggedout=NOW() WHERE id=:id";
+                        $logoutresult = $db->prepare($logoutsql);
+                        $values = array(':id'       => $logres['id']);
+                        $logoutresult->execute($values);
+                    }
+
                     // Insert Login timestamps into DB Table - login_log
                     $loginsql = "INSERT INTO login_log (uid, loggedin) VALUES (:uid, NOW())";
                     $loginresult = $db->prepare($loginsql);
