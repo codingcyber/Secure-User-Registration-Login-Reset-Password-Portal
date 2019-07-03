@@ -1,6 +1,5 @@
 <?php 
-session_start();
-include('check_login.php');
+include('check-login.php');
 include('includes/header.php');
 include('includes/navigation.php'); 
 ?>
