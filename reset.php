@@ -31,7 +31,35 @@ if(isset($_POST) & !empty($_POST)){
     }
 
     if(empty($errors)){
-        $messages[] = 'Check User Name / Email exists in Database, if exists create reset token and send email';
+        $sql = "SELECT * FROM users WHERE ";
+        if(filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
+            $sql .= "email=?";
+        }else{
+            $sql .= "username=?";
+        }
+        $sql .= " AND activate=1";
+        $result = $db->prepare($sql);
+        $result->execute(array($_POST['email']));
+        $count = $result->rowCount();
+        $res = $result->fetch(PDO::FETCH_ASSOC);
+        $userid = $res['id'];
+        if($count == 1){
+            $messages[] = 'User Name / Email exists, create reset token and send email';
+            // Generating and Inserting Activation Token in DB Table - user_active
+            $reset_token = md5($_POST['uname']);
+            $resetsql = "INSERT INTO password_reset (uid, reset_token) VALUES (:uid, :reset_token)";
+            $resetresult = $db->prepare($resetsql);
+            $values = array(':uid'              => $userid,
+                            ':reset_token'     => $reset_token
+                            );
+            $resetresult->execute($values);
+
+            // Inserting Activity into DB Table
+
+            // Send Email to User
+        }else{
+            $errors[] = 'Your Account is not available with in our activated accounts, please check with site Admin!';
+        }
     }
 }   
 // Create CSRF token

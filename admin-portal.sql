@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 02, 2019 at 04:29 PM
+-- Generation Time: Jul 03, 2019 at 09:38 PM
 -- Server version: 10.3.15-MariaDB
 -- PHP Version: 7.1.30
 
@@ -45,6 +45,19 @@ CREATE TABLE `login_log` (
   `uid` int(11) NOT NULL,
   `loggedin` datetime NOT NULL,
   `loggedout` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset`
+--
+
+CREATE TABLE `password_reset` (
+  `id` int(11) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `reset_token` varchar(255) NOT NULL,
+  `created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -131,6 +144,12 @@ ALTER TABLE `login_log`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `password_reset`
+--
+ALTER TABLE `password_reset`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -169,6 +188,12 @@ ALTER TABLE `login_fail`
 -- AUTO_INCREMENT for table `login_log`
 --
 ALTER TABLE `login_log`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `password_reset`
+--
+ALTER TABLE `password_reset`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
