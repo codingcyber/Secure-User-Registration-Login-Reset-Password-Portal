@@ -70,6 +70,16 @@ if(isset($_POST) & !empty($_POST)){
                     $loginresult = $db->prepare($loginsql);
                     $values = array(':uid'          => $res['id'] );
                     $loginresult->execute($values);
+
+                    // regenerate session id
+                    session_regenerate_id();
+                    $_SESSION['login'] = true;
+                    $_SESSION['id'] = $res['id'];
+                    $_SESSION['last_login'] = time();
+
+                    // redirect the user to members area/dashboard page
+
+                    header('location:index.php');
                 }else{
                     $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
                     $actresult = $db->prepare($actsql);
