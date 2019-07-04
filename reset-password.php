@@ -51,7 +51,20 @@ if(isset($_POST) & !empty($_POST)){
     }
 
     if(empty($errors)){
-        
+        // Update the password after submitting new password
+        $sql = "SELECT * FROM password_reset WHERE reset_token=:reset_token AND uid=:uid";
+        $result = $db->prepare($sql);
+        $values = array(':reset_token'      => $_POST['key'],
+                        ':uid'              => $_POST['id']
+                        );
+        $result->execute($values);
+        $count = $result->rowCount();
+        if($count == 1){
+            // update the password here
+            echo $_POST['key'] . " " . $_POST['id'];
+        }else{
+            $errors[] = "There is some problem with Reset Token, Contact Site Admin!";
+        }
     }
 }   
 // Create CSRF token
@@ -62,14 +75,23 @@ $_SESSION['csrf_token_time'] = time();
 // fetch the user details from database and display those details in disabled input fields, username & email
 $sql = "SELECT * FROM password_reset WHERE reset_token=:reset_token AND uid=:uid";
 $result = $db->prepare($sql);
-$values = array(':reset_token'     => $_GET['key'],
-                ':uid'        => $_GET['id']
+$values = array(':reset_token'      => $_GET['key'],
+                ':uid'              => $_GET['id']
                 );
 $result->execute($values);
 $count = $result->rowCount();
 if($count == 1){
-    $messages[] = "Get the User Details from users table";
     // Select SQL query to fetch user details from users table using user id
+    $usersql = "SELECT * FROM users WHERE id=? AND activate=1";
+    $userresult = $db->prepare($usersql);
+    $userresult->execute(array($_GET['id']));
+    $usercount = $userresult->rowCount();
+    $userres = $userresult->fetch(PDO::FETCH_ASSOC);
+    if($usercount == 1){
+        //$messages[] = "Do Nothing, display the details in form";
+    }else{
+        $errors[] = "Your Account is not Active, Please activate before resetting the password";
+    }
 }else{
     $errors[] = "There is some problem with Reset Token, Contact Site Admin!";
 }
@@ -101,12 +123,14 @@ if($count == 1){
                 ?>
                 <form role="form" method="post">
                     <input type="hidden" name="csrf_token" value="<?php echo $token; ?>">
+                    <input type="hidden" name="key" value="<?php echo $_GET['key']; ?>">
+                    <input type="hidden" name="id" value="<?php echo $_GET['id']; ?>">
                     <fieldset>
                         <div class="form-group">
-                            <input class="form-control" placeholder="User Name" name="username" type="text" autofocus disabled value="<?php if(isset($_POST['uname'])){ echo $_POST['uname']; } ?>">
+                            <input class="form-control" placeholder="User Name" name="username" type="text" autofocus disabled value="<?php if(isset($userres['username'])){ echo $userres['username']; } ?>">
                         </div>
                         <div class="form-group">
-                            <input class="form-control" placeholder="E-mail" name="email" type="email" disabled value="<?php if(isset($_POST['uname'])){ echo $_POST['uname']; } ?>">
+                            <input class="form-control" placeholder="E-mail" name="email" type="email" disabled value="<?php if(isset($userres['email'])){ echo $userres['email']; } ?>">
                         </div>
                         <div class="form-group">
                             <input class="form-control" placeholder="Password" name="password" type="password" >
