@@ -1,7 +1,16 @@
 <?php 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 session_start();
 include('includes/header.php'); 
 require_once('includes/connect.php');
+require_once('includes/smtp.php');
+
+$url = "http://localhost/Secure-User-Registration-Login-Reset-Password-Portal/";
+
+require 'PHPMailer-master/src/Exception.php';
+require 'PHPMailer-master/src/PHPMailer.php';
+require 'PHPMailer-master/src/SMTP.php';
 if(isset($_POST) & !empty($_POST)){
     if(empty($_POST['email'])){ $errors[] = 'User Name field is Required';}
 
@@ -46,7 +55,7 @@ if(isset($_POST) & !empty($_POST)){
         if($count == 1){
             $messages[] = 'User Name / Email exists, create reset token and send email';
             // Generating and Inserting Activation Token in DB Table - user_active
-            $reset_token = md5($_POST['uname']);
+            $reset_token = md5($res['username']).time();
             $resetsql = "INSERT INTO password_reset (uid, reset_token) VALUES (:uid, :reset_token)";
             $resetresult = $db->prepare($resetsql);
             $values = array(':uid'              => $userid,
@@ -55,8 +64,42 @@ if(isset($_POST) & !empty($_POST)){
             $resetresult->execute($values);
 
             // Inserting Activity into DB Table
+            $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+            $actresult = $db->prepare($actsql);
+            $values = array(':uid'          => $userid,
+                            ':activity'     => 'Password Reset Intiated'
+                            );
+            $actresult->execute($values);
 
             // Send Email to User
+            $mail = new PHPMailer(true);
+
+            try {
+                //Server settings
+                $mail->isSMTP();                                            // Set mailer to use SMTP
+                $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
+                $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+                $mail->Username   = $smtpuser;                     // SMTP username
+                $mail->Password   = $smtppass;                               // SMTP password
+                $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
+                $mail->Port       = 587;                                    // TCP port to connect to
+
+                //Recipients
+                $mail->setFrom('test@example.com', 'Vivek Vengala');
+                // update recipient email with dynamic email
+                $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+
+                // Content
+                $mail->isHTML(true);                                  // Set email format to HTML
+                $mail->Subject = 'Reset Your Password';
+                $mail->Body    = "{$url}reset-password.php?key={$reset_token}&id={$userid}</b>";
+                $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+                $mail->send();
+                $messages[] = 'Password Reset Email Sent, Follow the Instructions';
+            } catch (Exception $e) {
+                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            }
         }else{
             $errors[] = 'Your Account is not available with in our activated accounts, please check with site Admin!';
         }

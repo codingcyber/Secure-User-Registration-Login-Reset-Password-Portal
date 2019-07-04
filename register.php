@@ -116,7 +116,7 @@ if(isset($_POST) & !empty($_POST)){
                     $messages[] = 'Adding User Registration Log Entry';
 
                     // Generating and Inserting Activation Token in DB Table - user_active
-                    $active_token = md5($_POST['uname']);
+                    $active_token = md5($_POST['uname']).time();
                     $activesql = "INSERT INTO user_active (uid, active_token) VALUES (:uid, :active_token)";
                     $activeresult = $db->prepare($activesql);
                     $values = array(':uid'              => $userid,
