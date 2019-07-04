@@ -61,7 +61,58 @@ if(isset($_POST) & !empty($_POST)){
         $count = $result->rowCount();
         if($count == 1){
             // update the password here
-            echo $_POST['key'] . " " . $_POST['id'];
+            $updsql = "UPDATE users SET password=:password, updated=NOW() WHERE id=:id";
+            $updresult = $db->prepare($updsql);
+            $values = array(':password' => $pass_hash,
+                            ':id'       => $_POST['id']
+                            );
+            $updres = $updresult->execute($values);
+            if($updres){
+                // Inserting activity into DB table
+                $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                $actresult = $db->prepare($actsql);
+                $values = array(':uid'          => $_POST['id'],
+                                ':activity'     => 'Password Updated with Reset Password'
+                                );
+                $actresult->execute($values);
+
+                // deleting the reset token from password_reset table
+                $delsql = "DELETE FROM password_reset WHERE reset_token=?";
+                $delresult = $db->prepare($delsql);
+                $delres = $delresult->execute(array($_POST['key']));
+                if($delres){
+                    // send email
+                    $mail = new PHPMailer(true);
+
+                    try {
+                        //Server settings
+                        $mail->isSMTP();                                            // Set mailer to use SMTP
+                        $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
+                        $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+                        $mail->Username   = $smtpuser;                     // SMTP username
+                        $mail->Password   = $smtppass;                               // SMTP password
+                        $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
+                        $mail->Port       = 587;                                    // TCP port to connect to
+
+                        //Recipients
+                        $mail->setFrom('test@example.com', 'Vivek Vengala');
+                        // update recipient email with dynamic email
+                        $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+
+                        // Content
+                        $mail->isHTML(true);                                  // Set email format to HTML
+                        $mail->Subject = 'Password Updated';
+                        $mail->Body    = "Your Account Password Updated, Login to your account</b>";
+                        $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+                        $mail->send();
+                        $messages[] = 'Password Update Confirmation Email Sent';
+                    } catch (Exception $e) {
+                        echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                    }
+                }
+
+            }
         }else{
             $errors[] = "There is some problem with Reset Token, Contact Site Admin!";
         }
