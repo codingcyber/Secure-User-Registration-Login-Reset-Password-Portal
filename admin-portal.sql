@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 24, 2019 at 03:34 PM
+-- Generation Time: Jul 24, 2019 at 05:18 PM
 -- Server version: 10.3.15-MariaDB
 -- PHP Version: 7.1.30
 
@@ -92,6 +92,7 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `activate` tinyint(1) NOT NULL DEFAULT 0,
+  `role` varchar(255) NOT NULL,
   `created` datetime NOT NULL DEFAULT current_timestamp(),
   `updated` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -100,9 +101,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password`, `activate`, `created`, `updated`) VALUES
-(1, 'test', 'test@gmail.com', '$2y$10$mZATo/AHCY1Jh32wyi1ISefLE28OibYAd979kYz.EznxBwlAwFJcS', 1, '2019-07-04 16:38:20', '2019-07-04 21:23:48'),
-(2, 'vivek', 'vivek@pixelw3.com', '$2y$10$OsgxIz.LS4GPH2tPysPj6OpRfKq7iNfgtpDB3LMKnxmoVXBdwrrHy', 0, '2019-07-05 19:45:23', '2019-07-24 13:25:29');
+INSERT INTO `users` (`id`, `username`, `email`, `password`, `activate`, `role`, `created`, `updated`) VALUES
+(1, 'test', 'test@gmail.com', '$2y$10$mZATo/AHCY1Jh32wyi1ISefLE28OibYAd979kYz.EznxBwlAwFJcS', 1, '', '2019-07-04 16:38:20', '2019-07-04 21:23:48'),
+(2, 'vivek', 'vivek@pixelw3.com', '$2y$10$OsgxIz.LS4GPH2tPysPj6OpRfKq7iNfgtpDB3LMKnxmoVXBdwrrHy', 0, '', '2019-07-05 19:45:23', '2019-07-24 13:25:29');
 
 -- --------------------------------------------------------
 
@@ -188,7 +189,12 @@ INSERT INTO `user_activity` (`id`, `uid`, `activity`, `created`) VALUES
 (44, 1, 'User LogOut', '2019-07-24 16:50:48'),
 (45, 2, 'User LoggedIn', '2019-07-24 16:50:56'),
 (46, 2, 'User LogOut', '2019-07-24 16:51:06'),
-(47, 2, 'User LoggedIn', '2019-07-24 16:51:21');
+(47, 2, 'User LoggedIn', '2019-07-24 16:51:21'),
+(48, 2, 'Profile Updated', '2019-07-24 20:10:18'),
+(49, 2, 'User Permissions Updated', '2019-07-24 20:22:24'),
+(50, 2, 'User Permissions Updated', '2019-07-24 20:25:31'),
+(51, 2, 'User Permissions Updated', '2019-07-24 20:44:51'),
+(52, 2, 'User Permissions Updated', '2019-07-24 20:46:17');
 
 -- --------------------------------------------------------
 
@@ -235,6 +241,7 @@ CREATE TABLE `user_permission` (
   `show_fname` tinyint(1) NOT NULL DEFAULT 1,
   `show_lname` tinyint(1) NOT NULL DEFAULT 1,
   `show_mobile` tinyint(1) NOT NULL DEFAULT 1,
+  `show_email` tinyint(1) NOT NULL DEFAULT 1,
   `show_age` tinyint(1) NOT NULL DEFAULT 1,
   `show_gender` tinyint(1) NOT NULL DEFAULT 1,
   `show_pic` tinyint(1) NOT NULL DEFAULT 1,
@@ -247,6 +254,13 @@ CREATE TABLE `user_permission` (
   `created` datetime NOT NULL DEFAULT current_timestamp(),
   `updated` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `user_permission`
+--
+
+INSERT INTO `user_permission` (`id`, `uid`, `show_fname`, `show_lname`, `show_mobile`, `show_email`, `show_age`, `show_gender`, `show_pic`, `show_bio`, `show_fb`, `show_twitter`, `show_linkedin`, `show_blog`, `show_website`, `created`, `updated`) VALUES
+(1, 2, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, '2019-07-24 20:10:18', '2019-07-24 20:46:17');
 
 --
 -- Indexes for dumped tables
@@ -339,7 +353,7 @@ ALTER TABLE `user_active`
 -- AUTO_INCREMENT for table `user_activity`
 --
 ALTER TABLE `user_activity`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `user_info`
@@ -351,7 +365,7 @@ ALTER TABLE `user_info`
 -- AUTO_INCREMENT for table `user_permission`
 --
 ALTER TABLE `user_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

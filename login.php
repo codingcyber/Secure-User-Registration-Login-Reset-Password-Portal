@@ -41,6 +41,7 @@ if(isset($_POST) & !empty($_POST)){
         }else{
             $sql .= "username=?";
         }
+        $sql .= " AND activate=1";
         $result = $db->prepare($sql);
         $result->execute(array($_POST['email']));
         $count = $result->rowCount();

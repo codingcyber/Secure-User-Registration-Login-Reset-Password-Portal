@@ -6,6 +6,7 @@ users
 -email
 -password
 -activate
+-role
 -created
 -updated
 
