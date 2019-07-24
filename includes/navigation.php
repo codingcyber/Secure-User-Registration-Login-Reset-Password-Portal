@@ -57,6 +57,32 @@
                     </ul>
                     <!-- /.nav-second-level -->
                 </li>
+                <?php
+                    $uid = $_SESSION['id'];
+                    $sql = "SELECT * FROM users WHERE id=?";
+                    //$sql .= " AND role='admin'";
+                    $result = $db->prepare($sql);
+                    $result->execute(array($uid));
+                    $res = $result->fetch(PDO::FETCH_ASSOC);
+                    // check count
+                    if($res['role'] == 'admin'){
+                ?>
+                <li>
+                    <a href="#"><i class="fa fa-user fa-fw"></i> Admin<span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li>
+                            <a href="users.php">Users</a>
+                        </li>
+                        <li>
+                            <a href="login-activity-admin.php">Login Activity</a>
+                        </li>
+                        <li>
+                            <a href="user-activity-admin.php">User Activity</a>
+                        </li>
+                    </ul>
+                    <!-- /.nav-second-level -->
+                </li>
+                <?php } ?>
             </ul>
         </div>
         <!-- /.sidebar-collapse -->
