@@ -2,11 +2,17 @@
 include('includes/header.php'); 
 require_once('includes/connect.php');
 $username = $_GET['username'];
-$usersql = "SELECT u.email, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.username=?";
+$usersql = "SELECT u.id, u.email, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.username=?";
 $userresult = $db->prepare($usersql);
 $userresult->execute(array($username));
 $usercount = $userresult->rowCount();
 $userres = $userresult->fetch(PDO::FETCH_ASSOC);
+
+$userid = $userres['id'];
+$permsql = "SELECT * FROM user_permission WHERE uid=?";
+$permresult = $db->prepare($permsql);
+$permresult->execute(array($userid));
+$permres = $permresult->fetch(PDO::FETCH_ASSOC);
 ?>
 <div class="container">
 	<div class="row">
@@ -16,38 +22,51 @@ $userres = $userresult->fetch(PDO::FETCH_ASSOC);
                 <div class="cardheader">
 
                 </div>
-                <?php if(!empty($userres['profilepic'])){ ?>
+                <?php if(!empty($userres['profilepic']) & ($permres['show_pic'] == 1)){ ?>
                 <div class="avatar">
                     <img alt="" src="<?php echo $userres['profilepic']; ?>">
                 </div>
                 <?php } ?>
                 <div class="info">
                     <div class="title">
-                        <a target="_blank" href="https://scripteden.com/"><?php if(!empty($userres['fname'])){ echo $userres['fname']; } ?> <?php if(!empty($userres['lname'])){ echo $userres['lname']; } ?></a>
+                        <a target="_blank" href="https://codingcyber.org/"><?php if(!empty($userres['fname']) & ($permres['show_fname'] == 1)){ echo $userres['fname']; } ?> <?php if(!empty($userres['lname']) & ($permres['show_lname'] == 1)){ echo $userres['lname']; } ?></a>
                     </div>
-                    <div class="desc"><?php if(!empty($userres['gender'])){ echo $userres['gender']; } ?></div>
-                    <div class="desc"><?php if(!empty($userres['age'])){ echo $userres['age']; } ?></div>
-                    <div class="desc"><?php if(!empty($userres['bio'])){ echo $userres['bio']; } ?></div>
-                    <div class="desc"><i class="fa fa-phone"></i> <?php if(!empty($userres['mobile'])){ echo $userres['mobile']; } ?></div>
-                    <div class="desc"><i class="fa fa-envelope-o"></i> <?php if(!empty($userres['email'])){ echo $userres['email']; } ?></div>
+                    <div class="desc"><?php if(!empty($userres['gender']) & ($permres['show_gender'] == 1)){ echo $userres['gender']; } ?></div>
+                    <div class="desc"><?php if(!empty($userres['age']) & ($permres['show_age'] == 1)){ echo $userres['age']; } ?></div>
+                    <div class="desc"><?php if(!empty($userres['bio']) & ($permres['show_bio'] == 1)){ echo $userres['bio']; } ?></div>
+                    <div class="desc"> <?php if(!empty($userres['mobile']) & ($permres['show_mobile'] == 1)){ 
+                        echo '<i class="fa fa-phone"></i> ';
+                        echo $userres['mobile']; } ?></div>
+                    <div class="desc"> <?php if(!empty($userres['email']) & ($permres['show_email'] == 1)){ 
+                        echo '<i class="fa fa-envelope-o"></i> ';
+                        echo $userres['email']; } ?></div>
                 </div>
                 <div class="bottom">
-                    <?php // TODO : Only Display buttons when value is not empty ?>
-                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['fb'])){ echo $userres['fb']; } ?>">
+                    <?php if(!empty($userres['fb']) & ($permres['show_fb'] == 1)){ ?>
+                    <a class="btn btn-primary btn-sm" href="<?php echo $userres['fb']; ?>">
                         <i class="fa fa-facebook"></i>
                     </a>
-                    <a class="btn btn-primary btn-twitter btn-sm" href="<?php if(!empty($userres['twitter'])){ echo $userres['twitter']; } ?>">
+                    <?php } ?>
+                    <?php if(!empty($userres['twitter']) & ($permres['show_twitter'] == 1)){ ?>
+                    <a class="btn btn-primary btn-twitter btn-sm" href="<?php  echo $userres['twitter']; ?>">
                         <i class="fa fa-twitter"></i>
                     </a>
-                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['linkedin'])){ echo $userres['linkedin']; } ?>">
+                    <?php } ?>
+                    <?php if(!empty($userres['linkedin']) & ($permres['show_linkedin'] == 1)){ ?>
+                    <a class="btn btn-primary btn-sm" href="<?php echo $userres['linkedin']; ?>">
                         <i class="fa fa-linkedin"></i>
                     </a>
-                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['blog'])){ echo $userres['blog']; } ?>">
+                    <?php } ?>
+                    <?php if(!empty($userres['blog']) & ($permres['show_blog'] == 1)){ ?>
+                    <a class="btn btn-primary btn-sm" href="<?php echo $userres['blog']; ?>">
                         <i class="fa fa-rss"></i>
                     </a>
-                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['website'])){ echo $userres['website']; } ?>">
+                    <?php } ?>
+                    <?php if(!empty($userres['website']) & ($permres['show_website'] == 1)){ ?>
+                    <a class="btn btn-primary btn-sm" href="<?php echo $userres['website']; ?>">
                         <i class="fa fa-globe"></i>
                     </a>
+                    <?php } ?>
                 </div>
             </div>
 
