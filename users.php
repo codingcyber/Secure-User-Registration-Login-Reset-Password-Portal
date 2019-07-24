@@ -2,9 +2,7 @@
 require_once('includes/connect.php');
 require_once('check-admin.php');
 include('includes/header.php');
-include('includes/navigation.php'); 
-$userid = 2;
-
+include('includes/navigation.php');
 ?>
 <div id="page-wrapper" style="min-height: 345px;">
     <div class="row">
@@ -37,7 +35,7 @@ $userid = 2;
                                 <?php
                                     $usersql = "SELECT * FROM users";
                                     $userresult = $db->prepare($usersql);
-                                    $userresult->execute(array($userid));
+                                    $userresult->execute();
                                     $userres = $userresult->fetchAll(PDO::FETCH_ASSOC);
                                     foreach ($userres as $user) {
                                 ?>
