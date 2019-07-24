@@ -1,5 +1,13 @@
-<?php include('includes/header.php'); ?>
-
+<?php 
+include('includes/header.php'); 
+require_once('includes/connect.php');
+$username = $_GET['username'];
+$usersql = "SELECT u.email, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.username=?";
+$userresult = $db->prepare($usersql);
+$userresult->execute(array($username));
+$usercount = $userresult->rowCount();
+$userres = $userresult->fetch(PDO::FETCH_ASSOC);
+?>
 <div class="container">
 	<div class="row">
 		<div class="col-lg-6 col-sm-6 col-md-offset-3">
@@ -8,35 +16,36 @@
                 <div class="cardheader">
 
                 </div>
+                <?php if(!empty($userres['profilepic'])){ ?>
                 <div class="avatar">
-                    <img alt="" src="http://lorempixel.com/100/100/people/9/">
+                    <img alt="" src="<?php echo $userres['profilepic']; ?>">
                 </div>
+                <?php } ?>
                 <div class="info">
                     <div class="title">
-                        <a target="_blank" href="https://scripteden.com/">fname lname</a>
+                        <a target="_blank" href="https://scripteden.com/"><?php if(!empty($userres['fname'])){ echo $userres['fname']; } ?> <?php if(!empty($userres['lname'])){ echo $userres['lname']; } ?></a>
                     </div>
-                    <div class="desc">Gender</div>
-                    <div class="desc">Age</div>
-                    <div class="desc">Bio</div>
-                    <div class="desc"><i class="fa fa-phone"></i> Mobile</div>
-                    <div class="desc"><i class="fa fa-envelope-o"></i> Email</div>
+                    <div class="desc"><?php if(!empty($userres['gender'])){ echo $userres['gender']; } ?></div>
+                    <div class="desc"><?php if(!empty($userres['age'])){ echo $userres['age']; } ?></div>
+                    <div class="desc"><?php if(!empty($userres['bio'])){ echo $userres['bio']; } ?></div>
+                    <div class="desc"><i class="fa fa-phone"></i> <?php if(!empty($userres['mobile'])){ echo $userres['mobile']; } ?></div>
+                    <div class="desc"><i class="fa fa-envelope-o"></i> <?php if(!empty($userres['email'])){ echo $userres['email']; } ?></div>
                 </div>
                 <div class="bottom">
-                    <a class="btn btn-primary btn-sm" href="#">
+                    <?php // TODO : Only Display buttons when value is not empty ?>
+                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['fb'])){ echo $userres['fb']; } ?>">
                         <i class="fa fa-facebook"></i>
                     </a>
-                    <a class="btn btn-primary btn-twitter btn-sm" href="#">
+                    <a class="btn btn-primary btn-twitter btn-sm" href="<?php if(!empty($userres['twitter'])){ echo $userres['twitter']; } ?>">
                         <i class="fa fa-twitter"></i>
                     </a>
-                    <a class="btn btn-primary btn-sm" rel="publisher"
-                       href="#">
+                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['linkedin'])){ echo $userres['linkedin']; } ?>">
                         <i class="fa fa-linkedin"></i>
                     </a>
-                    <a class="btn btn-primary btn-sm" rel="publisher"
-                       href="#">
+                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['blog'])){ echo $userres['blog']; } ?>">
                         <i class="fa fa-rss"></i>
                     </a>
-                    <a class="btn btn-primary btn-sm" rel="publisher" href="#">
+                    <a class="btn btn-primary btn-sm" href="<?php if(!empty($userres['website'])){ echo $userres['website']; } ?>">
                         <i class="fa fa-globe"></i>
                     </a>
                 </div>
