@@ -139,7 +139,7 @@ if(isset($_POST) & !empty($_POST)){
 
                         //Recipients
                         $mail->setFrom('test@example.com', 'Vivek Vengala');
-                        // update recipient email with dynamic email
+                        // TODO : update recipient email with dynamic email
                         $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
 
                         // Content

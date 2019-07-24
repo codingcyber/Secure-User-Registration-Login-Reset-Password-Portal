@@ -96,7 +96,7 @@ if(isset($_POST) & !empty($_POST)){
 
                         //Recipients
                         $mail->setFrom('test@example.com', 'Vivek Vengala');
-                        // update recipient email with dynamic email
+                        // TODO : update recipient email with dynamic email
                         $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
 
                         // Content
@@ -122,29 +122,30 @@ if(isset($_POST) & !empty($_POST)){
 $token = md5(uniqid(rand(), TRUE));
 $_SESSION['csrf_token'] = $token;
 $_SESSION['csrf_token_time'] = time();
-
-// fetch the user details from database and display those details in disabled input fields, username & email
-$sql = "SELECT * FROM password_reset WHERE reset_token=:reset_token AND uid=:uid";
-$result = $db->prepare($sql);
-$values = array(':reset_token'      => $_GET['key'],
-                ':uid'              => $_GET['id']
-                );
-$result->execute($values);
-$count = $result->rowCount();
-if($count == 1){
-    // Select SQL query to fetch user details from users table using user id
-    $usersql = "SELECT * FROM users WHERE id=? AND activate=1";
-    $userresult = $db->prepare($usersql);
-    $userresult->execute(array($_GET['id']));
-    $usercount = $userresult->rowCount();
-    $userres = $userresult->fetch(PDO::FETCH_ASSOC);
-    if($usercount == 1){
-        //$messages[] = "Do Nothing, display the details in form";
+if(!isset($_POST) & empty($_POST)){
+    // fetch the user details from database and display those details in disabled input fields, username & email
+    $sql = "SELECT * FROM password_reset WHERE reset_token=:reset_token AND uid=:uid";
+    $result = $db->prepare($sql);
+    $values = array(':reset_token'      => $_GET['key'],
+                    ':uid'              => $_GET['id']
+                    );
+    $result->execute($values);
+    $count = $result->rowCount();
+    if($count == 1){
+        // Select SQL query to fetch user details from users table using user id
+        $usersql = "SELECT * FROM users WHERE id=? AND activate=1";
+        $userresult = $db->prepare($usersql);
+        $userresult->execute(array($_GET['id']));
+        $usercount = $userresult->rowCount();
+        $userres = $userresult->fetch(PDO::FETCH_ASSOC);
+        if($usercount == 1){
+            //$messages[] = "Do Nothing, display the details in form";
+        }else{
+            $errors[] = "Your Account is not Active, Please activate before resetting the password";
+        }
     }else{
-        $errors[] = "Your Account is not Active, Please activate before resetting the password";
+        $errors[] = "There is some problem with Reset Token, Contact Site Admin!";
     }
-}else{
-    $errors[] = "There is some problem with Reset Token, Contact Site Admin!";
 }
 ?>
 <div class="row">
