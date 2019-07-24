@@ -23,145 +23,175 @@ $usercount = $userresult->rowCount();
 $userres = $userresult->fetch(PDO::FETCH_ASSOC);
 
 if(isset($_POST) & !empty($_POST)){
-    $updsql = "UPDATE user_info SET ";
-    if(isset($_POST['fname']) & !empty($_POST['fname'])){
-        $updsql .= "fname=:fname, ";
-        $values['fname'] = $_POST['fname'];
-    }
-    if(isset($_POST['lname']) & !empty($_POST['lname'])){
-        $updsql .= "lname=:lname, ";
-        $values['lname'] = $_POST['lname'];
-    }
-    if(isset($_POST['mobile']) & !empty($_POST['mobile'])){
-        $updsql .= "mobile=:mobile, ";
-        $values['mobile'] = $_POST['mobile'];
-    }
-    if(isset($_POST['age']) & !empty($_POST['age'])){
-        $updsql .= "age=:age, ";
-        $values['age'] = $_POST['age'];
-    }
-    if(isset($_POST['gender']) & !empty($_POST['gender'])){
-        $updsql .= "gender=:gender, ";
-        $values['gender'] = $_POST['gender'];
-    }
-    // if(isset($_POST['profilepic']) & !empty($_POST['profilepic'])){
-    //     $updsql .= "profilepic=:profilepic, ";
-    //     $values['profilepic'] = $_POST['profilepic'];
-    // }
-    if(isset($_POST['bio']) & !empty($_POST['bio'])){
-        $updsql .= "bio=:bio, ";
-        $values['bio'] = $_POST['bio'];
-    }
-    if(isset($_POST['fb']) & !empty($_POST['fb'])){
-        $updsql .= "fb=:fb, ";
-        $values['fb'] = $_POST['fb'];
-    }
-    if(isset($_POST['twitter']) & !empty($_POST['twitter'])){
-        $updsql .= "twitter=:twitter, ";
-        $values['twitter'] = $_POST['twitter'];
-    }
-    if(isset($_POST['linkedin']) & !empty($_POST['linkedin'])){
-        $updsql .= "linkedin=:linkedin, ";
-        $values['linkedin'] = $_POST['linkedin'];
-    }
-    if(isset($_POST['blog']) & !empty($_POST['blog'])){
-        $updsql .= "blog=:blog, ";
-        $values['blog'] = $_POST['blog'];
-    }
-    if(isset($_POST['website']) & !empty($_POST['website'])){
-        $updsql .= "website=:website, ";
-        $values['website'] = $_POST['website'];
-    }
-    $updsql .= " updated=NOW() WHERE uid=:uid";
-    $updresult = $db->prepare($updsql);
-    // we should break these values based on the submitted form values and also the SQL query as constructive SQL query
-    $values['uid'] = $userid;
-    $updres = $updresult->execute($values);
-    if($updres){
-        $messages[] = 'Profile Updated';
-        // Insert Activity into DB Table - user_activity
-        $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
-        $actresult = $db->prepare($actsql);
-        $values = array(':uid'          => $userid,
-                        ':activity'     => 'Profile Updated'
-                        );
-        $actresult->execute($values);
+    // CSRF Token Validation
+    if(isset($_POST['csrf_token'])){
+        if($_POST['csrf_token'] === $_SESSION['csrf_token']){
+        }else{
+            $errors[] = "Problem with CSRF Token Verification";
+        }
     }else{
-        $errors[] = 'Failed to Update user Profile';
+        $errors[] = "Problem with CSRF Token Validation";
     }
 
-    // checking the password
-    if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}else{
-        if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}else{
-            // compare both password, if they match. generate the password hash
-            if($_POST['password'] == $_POST['passwordr']){
-                if(empty($_POST['passwordcur'])){ $errors[] = 'Current Password field is Required';}
-                // create password hash
-                $pass_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                // we should compare the current password, if it matches. Then we will update the new password in users table and also inserts new record in activity log
-                // we need user count
-                if(($usercount == 1) & empty($errors)){
-                    // compare current password with password hash in database
-                    if(password_verify($_POST['passwordcur'], $userres['password'])){
-                        // update the password with new password
-                        $updsql = "UPDATE users SET password=:password, updated=NOW() WHERE id=:id";
-                        $updresult = $db->prepare($updsql);
-                        $values = array(':password' => $pass_hash,
-                                        ':id'       => $userid
-                                        );
-                        $updres = $updresult->execute($values);
-                        if($updres){
-                            $messages[] = 'Password Updated';
-                            // Insert Activity into DB Table
-                            $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
-                            $actresult = $db->prepare($actsql);
-                            $values = array(':uid'          => $userid,
-                                            ':activity'     => 'Password Updated'
+    // CSRF Token Time Validation
+    $max_time = 60*60*24;
+    if(isset($_SESSION['csrf_token_time'])){
+        $token_time = $_SESSION['csrf_token_time'];
+        if(($token_time + $max_time) >= time()){
+        }else{
+            $errors[] = "CSRF Token Expired";
+            unset($_SESSION['csrf_token']);
+            unset($_SESSION['csrf_token_time']);
+        }
+    }else{
+        unset($_SESSION['csrf_token']);
+        unset($_SESSION['csrf_token_time']);
+    }
+
+    if(empty($errors)){
+        // update sql query
+        $updsql = "UPDATE user_info SET ";
+        if(isset($_POST['fname']) & !empty($_POST['fname'])){
+            $updsql .= "fname=:fname, ";
+            $values['fname'] = $_POST['fname'];
+        }
+        if(isset($_POST['lname']) & !empty($_POST['lname'])){
+            $updsql .= "lname=:lname, ";
+            $values['lname'] = $_POST['lname'];
+        }
+        if(isset($_POST['mobile']) & !empty($_POST['mobile'])){
+            $updsql .= "mobile=:mobile, ";
+            $values['mobile'] = $_POST['mobile'];
+        }
+        if(isset($_POST['age']) & !empty($_POST['age'])){
+            $updsql .= "age=:age, ";
+            $values['age'] = $_POST['age'];
+        }
+        if(isset($_POST['gender']) & !empty($_POST['gender'])){
+            $updsql .= "gender=:gender, ";
+            $values['gender'] = $_POST['gender'];
+        }
+        // if(isset($_POST['profilepic']) & !empty($_POST['profilepic'])){
+        //     $updsql .= "profilepic=:profilepic, ";
+        //     $values['profilepic'] = $_POST['profilepic'];
+        // }
+        if(isset($_POST['bio']) & !empty($_POST['bio'])){
+            $updsql .= "bio=:bio, ";
+            $values['bio'] = $_POST['bio'];
+        }
+        if(isset($_POST['fb']) & !empty($_POST['fb'])){
+            $updsql .= "fb=:fb, ";
+            $values['fb'] = $_POST['fb'];
+        }
+        if(isset($_POST['twitter']) & !empty($_POST['twitter'])){
+            $updsql .= "twitter=:twitter, ";
+            $values['twitter'] = $_POST['twitter'];
+        }
+        if(isset($_POST['linkedin']) & !empty($_POST['linkedin'])){
+            $updsql .= "linkedin=:linkedin, ";
+            $values['linkedin'] = $_POST['linkedin'];
+        }
+        if(isset($_POST['blog']) & !empty($_POST['blog'])){
+            $updsql .= "blog=:blog, ";
+            $values['blog'] = $_POST['blog'];
+        }
+        if(isset($_POST['website']) & !empty($_POST['website'])){
+            $updsql .= "website=:website, ";
+            $values['website'] = $_POST['website'];
+        }
+        $updsql .= " updated=NOW() WHERE uid=:uid";
+        $updresult = $db->prepare($updsql);
+        // we should break these values based on the submitted form values and also the SQL query as constructive SQL query
+        $values['uid'] = $userid;
+        $updres = $updresult->execute($values);
+        if($updres){
+            $messages[] = 'Profile Updated';
+            // Insert Activity into DB Table - user_activity
+            $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+            $actresult = $db->prepare($actsql);
+            $values = array(':uid'          => $userid,
+                            ':activity'     => 'Profile Updated'
+                            );
+            $actresult->execute($values);
+        }else{
+            $errors[] = 'Failed to Update user Profile';
+        }
+
+        // checking the password
+        if(!empty($_POST['password'])){
+            if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}else{
+                // compare both password, if they match. generate the password hash
+                if($_POST['password'] == $_POST['passwordr']){
+                    if(empty($_POST['passwordcur'])){ $errors[] = 'Current Password field is Required';}
+                    // create password hash
+                    $pass_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                    // we should compare the current password, if it matches. Then we will update the new password in users table and also inserts new record in activity log
+                    // we need user count
+                    if(($usercount == 1) & empty($errors)){
+                        // compare current password with password hash in database
+                        if(password_verify($_POST['passwordcur'], $userres['password'])){
+                            // update the password with new password
+                            $updsql = "UPDATE users SET password=:password, updated=NOW() WHERE id=:id";
+                            $updresult = $db->prepare($updsql);
+                            $values = array(':password' => $pass_hash,
+                                            ':id'       => $userid
                                             );
-                            $actresult->execute($values);
-                            // send email
-                            $mail = new PHPMailer(true);
+                            $updres = $updresult->execute($values);
+                            if($updres){
+                                $messages[] = 'Password Updated';
+                                // Insert Activity into DB Table
+                                $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                                $actresult = $db->prepare($actsql);
+                                $values = array(':uid'          => $userid,
+                                                ':activity'     => 'Password Updated'
+                                                );
+                                $actresult->execute($values);
+                                // send email
+                                $mail = new PHPMailer(true);
 
-                            try {
-                                //Server settings
-                                $mail->isSMTP();                                            // Set mailer to use SMTP
-                                $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
-                                $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
-                                $mail->Username   = $smtpuser;                     // SMTP username
-                                $mail->Password   = $smtppass;                               // SMTP password
-                                $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
-                                $mail->Port       = 587;                                    // TCP port to connect to
+                                try {
+                                    //Server settings
+                                    $mail->isSMTP();                                            // Set mailer to use SMTP
+                                    $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
+                                    $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+                                    $mail->Username   = $smtpuser;                     // SMTP username
+                                    $mail->Password   = $smtppass;                               // SMTP password
+                                    $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
+                                    $mail->Port       = 587;                                    // TCP port to connect to
 
-                                //Recipients
-                                $mail->setFrom('test@example.com', 'Vivek Vengala');
-                                // TODO : update recipient email with dynamic email
-                                $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+                                    //Recipients
+                                    $mail->setFrom('test@example.com', 'Vivek Vengala');
+                                    // TODO : update recipient email with dynamic email
+                                    $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
 
-                                // Content
-                                $mail->isHTML(true);                                  // Set email format to HTML
-                                $mail->Subject = 'Password Updated';
-                                $mail->Body    = "Your Account Password Updated from Dashboard, If you haven't udpated the password, reset your password ASAP.";
-                                $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+                                    // Content
+                                    $mail->isHTML(true);                                  // Set email format to HTML
+                                    $mail->Subject = 'Password Updated';
+                                    $mail->Body    = "Your Account Password Updated from Dashboard, If you haven't udpated the password, reset your password ASAP.";
+                                    $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
-                                $mail->send();
-                                $messages[] = 'Password Update Confirmation Email Sent';
-                            } catch (Exception $e) {
-                                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                                    $mail->send();
+                                    $messages[] = 'Password Update Confirmation Email Sent';
+                                } catch (Exception $e) {
+                                    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                                }
                             }
+                        }else{
+                            $errors[] = 'Problem with Current Password';
                         }
-                    }else{
-                        $errors[] = 'Problem with Current Password';
                     }
+                }else{
+                    // error message
+                    $errors[] = 'Both Passwords Should Match';
                 }
-            }else{
-                // error message
-                $errors[] = 'Both Passwords Should Match';
             }
         }
     }
 }
-
-
+// Create CSRF token
+$token = md5(uniqid(rand(), TRUE));
+$_SESSION['csrf_token'] = $token;
+$_SESSION['csrf_token_time'] = time();
 ?>
 <div id="page-wrapper" style="min-height: 345px;">
     <div class="row">
@@ -190,6 +220,7 @@ if(isset($_POST) & !empty($_POST)){
                         }
                     ?>
                     <form method="post">
+                        <input type="hidden" name="csrf_token" value="<?php echo $token; ?>">
                     <div class="row">
                         <div class="col-lg-6">
                                 <div class="form-group">
