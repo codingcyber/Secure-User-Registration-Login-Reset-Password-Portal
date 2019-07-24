@@ -7,6 +7,13 @@ require_once('includes/connect.php');
 // we will get this userid from session id
 $userid = 2;
 
+// fetch the use data from users and user_info tables
+// I'll move this query to above POST if condition, so that we can use these values in POST if condition
+$usersql = "SELECT u.email, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.id=?";
+$userresult = $db->prepare($usersql);
+$userresult->execute(array($userid));
+$userres = $userresult->fetch(PDO::FETCH_ASSOC);
+
 if(isset($_POST) & !empty($_POST)){
     $updsql = "UPDATE user_info SET ";
     if(isset($_POST['fname']) & !empty($_POST['fname'])){
@@ -64,16 +71,35 @@ if(isset($_POST) & !empty($_POST)){
     $updres = $updresult->execute($values);
     if($updres){
         $messages[] = 'Profile Updated';
+        // Insert Activity into DB Table - user_activity
+        $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+        $actresult = $db->prepare($actsql);
+        $values = array(':uid'          => $userid,
+                        ':activity'     => 'Profile Updated'
+                        );
+        $actresult->execute($values);
     }else{
         $errors[] = 'Failed to Update user Profile';
     }
+
+    // checking the password
+    if(empty($_POST['password'])){ $errors[] = 'Password field is Required';}else{
+        if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}else{
+            // compare both password, if they match. generate the password hash
+            if($_POST['password'] == $_POST['passwordr']){
+                // create password hash
+                $pass_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                $messages[] = 'Update the Password with New Password';
+                // we should compare the current password, if it matches. Then we will update the new password in users table and also inserts new record in activity log
+            }else{
+                // error message
+                $errors[] = 'Both Passwords Should Match';
+            }
+        }
+    }
 }
 
-// fetch the use data from users and user_info tables
-$usersql = "SELECT u.email, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.id=?";
-$userresult = $db->prepare($usersql);
-$userresult->execute(array($userid));
-$userres = $userresult->fetch(PDO::FETCH_ASSOC);
+
 ?>
 <div id="page-wrapper" style="min-height: 345px;">
     <div class="row">
