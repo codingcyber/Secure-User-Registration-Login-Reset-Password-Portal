@@ -1,0 +1,2 @@
+<?php
+// check admin user
