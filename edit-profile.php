@@ -1,5 +1,6 @@
 <?php 
-//session_start();
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 include('check-login.php');
 include('includes/header.php');
 include('includes/navigation.php'); 
@@ -7,11 +8,18 @@ require_once('includes/connect.php');
 // we will get this userid from session id
 $userid = 2;
 
+require_once('includes/smtp.php');
+
+require 'PHPMailer-master/src/Exception.php';
+require 'PHPMailer-master/src/PHPMailer.php';
+require 'PHPMailer-master/src/SMTP.php';
+
 // fetch the use data from users and user_info tables
 // I'll move this query to above POST if condition, so that we can use these values in POST if condition
-$usersql = "SELECT u.email, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.id=?";
+$usersql = "SELECT u.email, u.password, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.id=?";
 $userresult = $db->prepare($usersql);
 $userresult->execute(array($userid));
+$usercount = $userresult->rowCount();
 $userres = $userresult->fetch(PDO::FETCH_ASSOC);
 
 if(isset($_POST) & !empty($_POST)){
@@ -87,10 +95,64 @@ if(isset($_POST) & !empty($_POST)){
         if(empty($_POST['passwordr'])){ $errors[] = 'Repeat Password field is Required';}else{
             // compare both password, if they match. generate the password hash
             if($_POST['password'] == $_POST['passwordr']){
+                if(empty($_POST['passwordcur'])){ $errors[] = 'Current Password field is Required';}
                 // create password hash
                 $pass_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                $messages[] = 'Update the Password with New Password';
                 // we should compare the current password, if it matches. Then we will update the new password in users table and also inserts new record in activity log
+                // we need user count
+                if(($usercount == 1) & empty($errors)){
+                    // compare current password with password hash in database
+                    if(password_verify($_POST['passwordcur'], $userres['password'])){
+                        // update the password with new password
+                        $updsql = "UPDATE users SET password=:password, updated=NOW() WHERE id=:id";
+                        $updresult = $db->prepare($updsql);
+                        $values = array(':password' => $pass_hash,
+                                        ':id'       => $userid
+                                        );
+                        $updres = $updresult->execute($values);
+                        if($updres){
+                            $messages[] = 'Password Updated';
+                            // Insert Activity into DB Table
+                            $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+                            $actresult = $db->prepare($actsql);
+                            $values = array(':uid'          => $userid,
+                                            ':activity'     => 'Password Updated'
+                                            );
+                            $actresult->execute($values);
+                            // send email
+                            $mail = new PHPMailer(true);
+
+                            try {
+                                //Server settings
+                                $mail->isSMTP();                                            // Set mailer to use SMTP
+                                $mail->Host       = $smtphost;  // Specify main and backup SMTP servers
+                                $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+                                $mail->Username   = $smtpuser;                     // SMTP username
+                                $mail->Password   = $smtppass;                               // SMTP password
+                                $mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
+                                $mail->Port       = 587;                                    // TCP port to connect to
+
+                                //Recipients
+                                $mail->setFrom('test@example.com', 'Vivek Vengala');
+                                // TODO : update recipient email with dynamic email
+                                $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+
+                                // Content
+                                $mail->isHTML(true);                                  // Set email format to HTML
+                                $mail->Subject = 'Password Updated';
+                                $mail->Body    = "Your Account Password Updated from Dashboard, If you haven't udpated the password, reset your password ASAP.";
+                                $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+                                $mail->send();
+                                $messages[] = 'Password Update Confirmation Email Sent';
+                            } catch (Exception $e) {
+                                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+                            }
+                        }
+                    }else{
+                        $errors[] = 'Problem with Current Password';
+                    }
+                }
             }else{
                 // error message
                 $errors[] = 'Both Passwords Should Match';
@@ -193,14 +255,14 @@ if(isset($_POST) & !empty($_POST)){
                                     <input name="website" type="text" class="form-control" placeholder="Website" value="<?php if(isset($userres['website'])){ echo $userres['website']; } ?>">
                                 </div>
                                 <div class="form-group">
-                                    <input class="form-control" name="password" placeholder="Password">
+                                    <input class="form-control" name="password" type="password" placeholder="Password">
                                 </div>
                                 <div class="form-group">
-                                    <input class="form-control" name="passwordr" placeholder="Repeat Password">
+                                    <input class="form-control" name="passwordr" type="password" placeholder="Repeat Password">
                                 </div>
                                 <hr>
                                 <div class="form-group">
-                                    <input class="form-control" placeholder="Confirm Present Password">
+                                    <input class="form-control" name="passwordcur" type="password" placeholder="Confirm Present Password">
                                 </div>
 
                                 <input type="submit" class="btn btn-success btn-lg btn-block" value="Update Profile" />
