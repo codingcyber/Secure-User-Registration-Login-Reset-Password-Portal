@@ -12,14 +12,42 @@ if(isset($_POST) & !empty($_POST)){
     $count = $result->rowCount();
     if($count == 1){
         // update the permissions
+        $updsql = "UPDATE user_permission SET  show_fname=:show_fname, show_lname=:show_lname, show_mobile=:show_mobile, show_email=:show_email, show_age=:show_age, show_gender=:show_gender, show_pic=:show_pic, show_bio=:show_bio, show_fb=:show_fb, show_twitter=:show_twitter, show_linkedin=:show_linkedin, show_blog=:show_blog, show_website=:show_website, updated=NOW() WHERE uid=:uid";
+        $updresult = $db->prepare($updsql);
+        $values = array(':uid'              => $userid,
+                        ':show_fname'       => $_POST['fname'],
+                        ':show_lname'       => $_POST['lname'],
+                        ':show_mobile'      => $_POST['mobile'],
+                        ':show_email'       => $_POST['email'],
+                        ':show_age'         => $_POST['age'],
+                        ':show_gender'      => $_POST['gender'],
+                        ':show_pic'         => $_POST['pic'],
+                        ':show_bio'         => $_POST['bio'],
+                        ':show_fb'          => $_POST['fb'],
+                        ':show_twitter'     => $_POST['twitter'],
+                        ':show_linkedin'    => $_POST['linkedin'],
+                        ':show_blog'        => $_POST['blog'],
+                        ':show_website'     => $_POST['website'],
+                        );
+        $updres = $updresult->execute($values);
+        if($updres){
+            $messages[] = "Updated the User Permissions";
+            $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
+            $actresult = $db->prepare($actsql);
+            $values = array(':uid'          => $userid,
+                            ':activity'     => 'User Permissions Updated'
+                            );
+            $actresult->execute($values);
+        }
     }else{
         // insert the permissions into table with user id
-        $insql = "INSERT INTO user_permission (uid, show_fname, show_lname, show_mobile, show_age, show_gender, show_pic, show_bio, show_fb, show_twitter, show_linkedin, show_blog, show_website) VALUES (:uid, :show_fname, :show_lname, :show_mobile, :show_age, :show_gender, :show_pic, :show_bio, :show_fb, :show_twitter, :show_linkedin, :show_blog, :show_website)";
+        $insql = "INSERT INTO user_permission (uid, show_fname, show_lname, show_mobile, show_email, show_age, show_gender, show_pic, show_bio, show_fb, show_twitter, show_linkedin, show_blog, show_website) VALUES (:uid, :show_fname, :show_lname, :show_mobile, :show_email, :show_age, :show_gender, :show_pic, :show_bio, :show_fb, :show_twitter, :show_linkedin, :show_blog, :show_website)";
         $inresult = $db->prepare($insql);
         $values = array(':uid'              => $userid,
                         ':show_fname'       => $_POST['fname'],
                         ':show_lname'       => $_POST['lname'],
                         ':show_mobile'      => $_POST['mobile'],
+                        ':show_email'       => $_POST['email'],
                         ':show_age'         => $_POST['age'],
                         ':show_gender'      => $_POST['gender'],
                         ':show_pic'         => $_POST['pic'],
@@ -36,7 +64,7 @@ if(isset($_POST) & !empty($_POST)){
             $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
             $actresult = $db->prepare($actsql);
             $values = array(':uid'          => $userid,
-                            ':activity'     => 'Profile Updated'
+                            ':activity'     => 'User Permissions Created'
                             );
             $actresult->execute($values);
         }
@@ -94,6 +122,15 @@ $res = $result->fetch(PDO::FETCH_ASSOC);
                                     </label>
                                     <label class="radio-inline">
                                         <input type="radio" name="mobile" value="0" <?php if($res['show_mobile'] == 0){ echo "checked"; } ?>>No
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Display E-Mail</label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="email" value="1" <?php if($res['show_email'] == 1){ echo "checked"; } ?>>Yes
+                                    </label>
+                                    <label class="radio-inline">
+                                        <input type="radio" name="email" value="0" <?php if($res['show_email'] == 0){ echo "checked"; } ?>>No
                                     </label>
                                 </div>
                                 <div class="form-group">
