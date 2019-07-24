@@ -49,6 +49,35 @@ if(isset($_POST) & !empty($_POST)){
     }
 
     if(empty($errors)){
+        // Upload Profile Pic
+        if(isset($_FILES) & !empty($_FILES)){
+            $name = $_FILES['profilepic']['name'];
+            $size = $_FILES['profilepic']['size'];
+            $type = $_FILES['profilepic']['type'];
+            $tmp_name = $_FILES['profilepic']['tmp_name'];
+
+            // get the extension from file name
+            $extension = substr($name, strpos($name, '.') + 1);
+            $maxsize = 500000;
+
+            if(isset($name) & !empty($name)){
+                // compare the file extension with required extensions & check size, then upload the image
+                if(($extension == "jpeg" || $extension == "jpg") & $type == "image/jpeg" & $size <= $maxsize){
+                    $location = "uploads/";
+                    $filename = $location.$userid.".".$extension;
+                    if(move_uploaded_file($tmp_name, $filename)){
+                        $messages[] = "File Uploaded Successfully";
+                    }
+                }else{
+                    $errors[] = "Please upload only JPEG files & should be below 500kb";
+                }
+            }else{
+                $errors[] = "Please select a File";
+            }
+        }
+    }
+
+    if(empty($errors)){
         // update sql query
         $updsql = "UPDATE user_info SET ";
         if(isset($_POST['fname']) & !empty($_POST['fname'])){
@@ -219,7 +248,7 @@ $_SESSION['csrf_token_time'] = time();
                             echo "</div>";
                         }
                     ?>
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?php echo $token; ?>">
                     <div class="row">
                         <div class="col-lg-6">
@@ -257,7 +286,7 @@ $_SESSION['csrf_token_time'] = time();
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <input type="file" name="profile">
+                                    <input type="file" name="profilepic">
                                 </div>
                                 <div class="form-group">
                                     <textarea class="form-control" rows="3" name="bio" placeholder="Bio"><?php if(isset($userres['bio'])){ echo $userres['bio']; } ?></textarea>
