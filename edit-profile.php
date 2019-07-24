@@ -100,10 +100,10 @@ if(isset($_POST) & !empty($_POST)){
             $updsql .= "gender=:gender, ";
             $values['gender'] = $_POST['gender'];
         }
-        // if(isset($_POST['profilepic']) & !empty($_POST['profilepic'])){
-        //     $updsql .= "profilepic=:profilepic, ";
-        //     $values['profilepic'] = $_POST['profilepic'];
-        // }
+        if(isset($_FILES['profilepic']) & !empty($_FILES['profilepic'])){
+            $updsql .= "profilepic=:profilepic, ";
+            $values['profilepic'] = $filename;
+        }
         if(isset($_POST['bio']) & !empty($_POST['bio'])){
             $updsql .= "bio=:bio, ";
             $values['bio'] = $_POST['bio'];
@@ -142,6 +142,13 @@ if(isset($_POST) & !empty($_POST)){
                             ':activity'     => 'Profile Updated'
                             );
             $actresult->execute($values);
+            // fetch the new details from database
+            $usersql = "SELECT u.email, u.password, ui.fname, ui.lname, ui.mobile, ui.age, ui.gender, ui.profilepic, ui.bio, ui.fb, ui.twitter, ui.linkedin, ui.blog, ui.website FROM users u JOIN user_info ui WHERE u.id=ui.uid AND u.id=?";
+            $userresult = $db->prepare($usersql);
+            $userresult->execute(array($userid));
+            $usercount = $userresult->rowCount();
+            $userres = $userresult->fetch(PDO::FETCH_ASSOC);
+
         }else{
             $errors[] = 'Failed to Update user Profile';
         }
@@ -286,7 +293,12 @@ $_SESSION['csrf_token_time'] = time();
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <input type="file" name="profilepic">
+                                    <?php if(!empty($userres['profilepic'])){ ?>
+                                        <img src="<?php echo $userres['profilepic']; ?>" width="100" />
+                                        <a href="delete-pic.php">Delete Profile Pic</a>
+                                    <?php }else{ ?>
+                                        <input type="file" name="profilepic">
+                                    <?php } ?>
                                 </div>
                                 <div class="form-group">
                                     <textarea class="form-control" rows="3" name="bio" placeholder="Bio"><?php if(isset($userres['bio'])){ echo $userres['bio']; } ?></textarea>
