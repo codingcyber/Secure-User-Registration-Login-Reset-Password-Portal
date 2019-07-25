@@ -6,7 +6,7 @@ include('check-login.php');
 include('includes/header.php');
 include('includes/navigation.php'); 
 // we will get this userid from session id
-$userid = 2;
+$userid = $_SESSION['id'];
 
 require_once('includes/smtp.php');
 

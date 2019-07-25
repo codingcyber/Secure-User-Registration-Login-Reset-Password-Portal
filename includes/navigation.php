@@ -83,6 +83,12 @@
                     <!-- /.nav-second-level -->
                 </li>
                 <?php } ?>
+                <li>
+                    <a href="activity.php"><i class="fa fa-dashboard fa-fw"></i> My Activity</a>
+                </li>
+                <li>
+                    <a href="permissions.php"><i class="fa fa-dashboard fa-fw"></i> My Permissions</a>
+                </li>
             </ul>
         </div>
         <!-- /.sidebar-collapse -->

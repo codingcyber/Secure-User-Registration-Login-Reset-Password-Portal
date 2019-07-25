@@ -1,9 +1,9 @@
 <?php 
+require_once('includes/connect.php');
 include('check-login.php');
 include('includes/header.php');
 include('includes/navigation.php'); 
-require_once('includes/connect.php');
-$userid = 2;
+$userid = $_SESSION['id'];
 if(isset($_POST) & !empty($_POST)){
     // check permission for this user exist - create or update the permissions
     $sql = "SELECT * FROM user_permission WHERE uid=?";

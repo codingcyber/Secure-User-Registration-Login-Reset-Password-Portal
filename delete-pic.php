@@ -1,7 +1,7 @@
 <?php
 include('check-login.php');
 require_once('includes/connect.php');
-$userid = 2;
+$userid = $_SESSION['id'];
 // fetch profile pic from user_info database table, then delete the image & update the value with empty value in database
 $picsql = "SELECT profilepic FROM user_info WHERE uid=?";
 $picresult = $db->prepare($picsql);

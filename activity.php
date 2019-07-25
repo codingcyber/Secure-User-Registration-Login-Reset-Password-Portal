@@ -3,7 +3,7 @@ require_once('includes/connect.php');
 include('check-login.php');
 include('includes/header.php');
 include('includes/navigation.php'); 
-$userid = 2;
+$userid = $_SESSION['id'];
 
 ?>
 <div id="page-wrapper" style="min-height: 345px;">
@@ -37,7 +37,7 @@ $userid = 2;
                                     $actresult = $db->prepare($actsql);
                                     $actresult->execute(array($userid));
                                     $actres = $actresult->fetchAll(PDO::FETCH_ASSOC);
-                                    $i = 0;
+                                    $i = 1;
                                     foreach ($actres as $activity) {
                                 ?>
                                 <tr>
@@ -74,7 +74,7 @@ $userid = 2;
                                     $logresult = $db->prepare($logsql);
                                     $logresult->execute(array($userid));
                                     $logres = $logresult->fetchAll(PDO::FETCH_ASSOC);
-                                    $i = 0;
+                                    $i = 1;
                                     foreach ($logres as $log) {
                                 ?>
                                 <tr>
