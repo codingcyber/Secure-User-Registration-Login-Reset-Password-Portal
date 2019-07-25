@@ -24,7 +24,7 @@ $permres = $permresult->fetch(PDO::FETCH_ASSOC);
                 </div>
                 <?php if(!empty($userres['profilepic']) & ($permres['show_pic'] == 1)){ ?>
                 <div class="avatar">
-                    <img alt="" src="<?php echo $userres['profilepic']; ?>">
+                    <img alt="" src="http://localhost/Secure-User-Registration-Login-Reset-Password-Portal/<?php echo $userres['profilepic']; ?>">
                 </div>
                 <?php } ?>
                 <div class="info">
