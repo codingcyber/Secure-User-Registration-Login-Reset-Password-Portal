@@ -71,8 +71,6 @@ if(isset($_POST) & !empty($_POST)){
                 }else{
                     $errors[] = "Please upload only JPEG files & should be below 500kb";
                 }
-            }else{
-                $errors[] = "Please select a File";
             }
         }
     }
@@ -100,7 +98,7 @@ if(isset($_POST) & !empty($_POST)){
             $updsql .= "gender=:gender, ";
             $values['gender'] = $_POST['gender'];
         }
-        if(isset($_FILES['profilepic']) & !empty($_FILES['profilepic'])){
+        if(isset($_FILES['profilepic']['name']) & !empty($_FILES['profilepic']['name'])){
             $updsql .= "profilepic=:profilepic, ";
             $values['profilepic'] = $filename;
         }
