@@ -2,8 +2,9 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 session_start();
-include('includes/header.php'); 
 require_once('includes/connect.php');
+include('if-loggedin.php');
+include('includes/header.php'); 
 include('recaptchalib.php'); 
 require_once('includes/smtp.php');
 

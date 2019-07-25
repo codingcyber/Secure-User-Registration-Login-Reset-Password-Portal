@@ -26,5 +26,5 @@ if($count == 1){
     $logoutresult->execute($values);
 }
 // redirect user to login page
-//header('location:login.php');
+header('location:login.php');
 ?>

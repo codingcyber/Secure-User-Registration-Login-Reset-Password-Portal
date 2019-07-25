@@ -1,7 +1,8 @@
 <?php 
 session_start();
-include('includes/header.php'); 
 require_once('includes/connect.php');
+include('if-loggedin.php');
+include('includes/header.php'); 
 $failmax = 5;
 if(isset($_POST) & !empty($_POST)){
     if(empty($_POST['email'])){ $errors[] = 'User Name / E-mail field is Required';}
@@ -141,10 +142,6 @@ $_SESSION['csrf_token_time'] = time();
             </div>
             <div class="panel-body">
                 <?php
-                    echo "Session ID : " . session_id();
-                    echo "<pre>";
-                    print_r($_SESSION);
-                    echo "</pre>";
                     if(!empty($messages)){
                         echo "<div class='alert alert-success'>";
                         foreach ($messages as $message) {
