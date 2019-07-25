@@ -32,16 +32,16 @@ include('includes/navigation.php');
                             </thead>
                             <tbody>
                                 <?php
-                                    $actsql = "SELECT ua.activity, ua.created, ui.fname, ui.lname FROM user_activity ua JOIN user_info ui WHERE ui.uid=ua.uid";
+                                    $actsql = "SELECT ua.activity, ua.created, u.username FROM user_activity ua JOIN users u WHERE u.id=ua.uid";
                                     $actresult = $db->prepare($actsql);
                                     $actresult->execute();
                                     $actres = $actresult->fetchAll(PDO::FETCH_ASSOC);
-                                    $i = 0;
+                                    $i = 1;
                                     foreach ($actres as $activity) {
                                 ?>
                                 <tr>
                                     <td><?php echo $i; ?></td>
-                                    <td><?php echo $activity['fname'] . " " . $activity['lname']; ?></td>
+                                    <td><?php echo $activity['username']; ?></td>
                                     <td><?php echo $activity['activity']; ?></td>
                                     <td><?php echo $activity['created']; ?></td>
                                 </tr>
