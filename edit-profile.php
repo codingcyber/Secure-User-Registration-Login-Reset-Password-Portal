@@ -1,10 +1,10 @@
 <?php 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+require_once('includes/connect.php');
 include('check-login.php');
 include('includes/header.php');
 include('includes/navigation.php'); 
-require_once('includes/connect.php');
 // we will get this userid from session id
 $userid = 2;
 
