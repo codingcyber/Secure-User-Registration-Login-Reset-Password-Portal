@@ -67,6 +67,11 @@ if(isset($_POST) & !empty($_POST)){
                             ':id'       => $_POST['id']
                             );
             $updres = $updresult->execute($values);
+
+            $usersql = "SELECT * FROM users WHERE id=?";
+            $userresult = $db->prepare($usersql);
+            $userresult->execute(array($_POST['id']));
+            $user = $userresult->fetch(PDO::FETCH_ASSOC);
             if($updres){
                 // Inserting activity into DB table
                 $actsql = "INSERT INTO user_activity (uid, activity) VALUES (:uid, :activity)";
@@ -95,9 +100,9 @@ if(isset($_POST) & !empty($_POST)){
                         $mail->Port       = 587;                                    // TCP port to connect to
 
                         //Recipients
-                        $mail->setFrom('test@example.com', 'Vivek Vengala');
+                        $mail->setFrom($fromemail, $fromname);
                         // TODO : update recipient email with dynamic email
-                        $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+                        $mail->addAddress($user['email'], $user['username']);     // Add a recipient
 
                         // Content
                         $mail->isHTML(true);                                  // Set email format to HTML
@@ -107,6 +112,8 @@ if(isset($_POST) & !empty($_POST)){
 
                         $mail->send();
                         $messages[] = 'Password Update Confirmation Email Sent';
+                        // we can redirect the user to login page
+                        header('location: login.php');
                     } catch (Exception $e) {
                         echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
                     }
@@ -122,7 +129,7 @@ if(isset($_POST) & !empty($_POST)){
 $token = md5(uniqid(rand(), TRUE));
 $_SESSION['csrf_token'] = $token;
 $_SESSION['csrf_token_time'] = time();
-if(!isset($_POST) & empty($_POST)){
+//if(!isset($_POST) & empty($_POST)){
     // fetch the user details from database and display those details in disabled input fields, username & email
     $sql = "SELECT * FROM password_reset WHERE reset_token=:reset_token AND uid=:uid";
     $result = $db->prepare($sql);
@@ -146,7 +153,7 @@ if(!isset($_POST) & empty($_POST)){
     }else{
         $errors[] = "There is some problem with Reset Token, Contact Site Admin!";
     }
-}
+//}
 ?>
 <div class="row">
     <div class="col-md-4 col-md-offset-4">

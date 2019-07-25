@@ -85,9 +85,9 @@ if(isset($_POST) & !empty($_POST)){
                 $mail->Port       = 587;                                    // TCP port to connect to
 
                 //Recipients
-                $mail->setFrom('test@example.com', 'Vivek Vengala');
+                $mail->setFrom($fromemail, $fromname);
                 // TODO : update recipient email with dynamic email
-                $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+                $mail->addAddress($res['email'], $res['username']);     // Add a recipient
 
                 // Content
                 $mail->isHTML(true);                                  // Set email format to HTML

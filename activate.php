@@ -41,6 +41,11 @@ if($count == 1){
                         );
         $actresult->execute($values);
         $messages[] = 'Adding User Registration Log Entry';
+
+        $usersql = "SELECT * FROM users WHERE id=?";
+        $userresult = $db->prepare($usersql);
+        $userresult->execute(array($_GET['id']));
+        $user = $userresult->fetch(PDO::FETCH_ASSOC);
         
         // send confirmation email to user
         $mail = new PHPMailer(true);
@@ -56,9 +61,9 @@ if($count == 1){
             $mail->Port       = 587;                                    // TCP port to connect to
 
             //Recipients
-            $mail->setFrom('test@example.com', 'Vivek Vengala');
+            $mail->setFrom($fromemail, $fromname);
             // TODO : update recipient email with dynamic email
-            $mail->addAddress('vivek@codingcyber.com', 'Vivek Vengala');     // Add a recipient
+            $mail->addAddress($user['email'], $user['username']);     // Add a recipient
 
             // Content
             $mail->isHTML(true);                                  // Set email format to HTML
